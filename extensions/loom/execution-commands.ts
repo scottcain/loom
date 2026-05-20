@@ -41,10 +41,17 @@ export function registerExecutionCommands(pi: ExtensionAPI): void {
         `1. Decide local vs Galaxy per the plan's routing tag (see [local|hybrid|remote] in the section header).\n` +
         `2. For Galaxy steps: invoke via Galaxy MCP, then call galaxy_invocation_record(...).\n` +
         `3. For local steps: run via bash; capture results into the notebook.\n` +
-        `4. After completion, edit the markdown checkbox to \`- [x]\` (or \`- [!]\` on failure).\n` +
-        `5. Periodically call galaxy_invocation_check_all to advance in-flight Galaxy work.\n` +
+        `4. Verify the result using the step's \`Verification:\` sub-bullet when present, ` +
+        `or infer the appropriate check from the artifact just produced. ` +
+        `For Galaxy work, poll to a terminal state and inspect output datasets; ` +
+        `for generated workflows, upload/import and invoke on a small test input; ` +
+        `for local artifacts, read/parse/lint/smoke-test them.\n` +
+        `5. Write the verification evidence into the notebook before changing status.\n` +
+        `6. Only after verification succeeds, edit the markdown checkbox to \`- [x]\` (or \`- [!]\` on failure). If verification is blocked or inconclusive, leave the step pending, record the blocker, and stop.\n` +
+        `7. Periodically call galaxy_invocation_check_all to advance in-flight Galaxy work.\n` +
         `Do NOT narrate progress in chat — the Notebook tab shows it. ` +
-        `Stop on failure; do not auto-advance past errors.`,
+        `Do NOT claim the artifact or step is done in chat unless verification evidence is recorded. ` +
+        `Stop on failure; do not auto-advance past errors or unverified results.`,
     );
   };
 
