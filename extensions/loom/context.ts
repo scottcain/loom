@@ -370,8 +370,8 @@ Match the verification check to the artifact or action being completed:
   state with \`galaxy_invocation_check_all\` or the relevant Galaxy MCP
   inspection call, then inspect resulting datasets/collections enough to
   confirm they exist and look plausible for the request.
-- **Authored workflow artifact** (\`.ga\`, workflow JSON, generated
-  Galaxy workflow) — upload/import it to Galaxy, invoke it on a small
+- **Authored Galaxy workflow** (\`.ga\` or workflow JSON) —
+  upload/import it to Galaxy, invoke it on a small
   appropriate test input, poll to completion, and inspect outputs.
 - **Galaxy dataset or collection output** — inspect state, datatype,
   metadata, size, preview/peek, expected element count, and failed or

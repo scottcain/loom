@@ -12,7 +12,7 @@ describe("buildVerificationDisciplineBlock", () => {
     expect(ctx).toContain('do **not** say "done"');
     expect(ctx).toContain("created but not verified");
     expect(ctx).toContain("Match the verification check to the artifact or action");
-    expect(ctx).toContain("Authored workflow artifact");
+    expect(ctx).toContain("Authored Galaxy workflow");
     expect(ctx).toContain("upload/import it to Galaxy");
     expect(ctx).toContain("Galaxy dataset or collection output");
     expect(ctx).toContain("Local data file");

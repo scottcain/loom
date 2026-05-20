@@ -55,6 +55,11 @@ look plausible for the request. Then write that verification evidence to
 the notebook and edit the markdown checkbox: `- [ ]` → `- [x]` (or
 `- [!]` on failure).
 
+Treat invocation YAML status as Galaxy job state. Treat the plan checkbox
+as verified-result state: a YAML `completed` invocation still needs
+output inspection and notebook evidence before the corresponding step is
+marked `- [x]`.
+
 ## Artifact verification
 
 Generated Galaxy artifacts are not complete just because a file exists

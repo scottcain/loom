@@ -58,6 +58,7 @@ describe("registerExecutionCommands", () => {
     expect(prompt).toContain("or infer the appropriate check from the artifact just produced");
     expect(prompt).toContain("Write the verification evidence into the notebook");
     expect(prompt).toContain("Only after verification succeeds");
+    expect(prompt).toContain("created but not verified");
     expect(prompt).toContain("Do NOT claim the artifact or step is done");
   });
 });

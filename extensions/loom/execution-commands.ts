@@ -47,7 +47,8 @@ export function registerExecutionCommands(pi: ExtensionAPI): void {
         `for generated workflows, upload/import and invoke on a small test input; ` +
         `for local artifacts, read/parse/lint/smoke-test them.\n` +
         `5. Write the verification evidence into the notebook before changing status.\n` +
-        `6. Only after verification succeeds, edit the markdown checkbox to \`- [x]\` (or \`- [!]\` on failure). If verification is blocked or inconclusive, leave the step pending, record the blocker, and stop.\n` +
+        `6. Only after verification succeeds, edit the markdown checkbox to \`- [x]\` (or \`- [!]\` on failure). ` +
+        `If verification is blocked or inconclusive, leave the step pending, record the blocker, say "created but not verified" for created artifacts, ask for the missing input or approval to change scope, and stop.\n` +
         `7. Periodically call galaxy_invocation_check_all to advance in-flight Galaxy work.\n` +
         `Do NOT narrate progress in chat — the Notebook tab shows it. ` +
         `Do NOT claim the artifact or step is done in chat unless verification evidence is recorded. ` +

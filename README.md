@@ -121,6 +121,9 @@ Conventions:
 - Anchors `{#plan-X-step-N}` so Galaxy invocation YAML can reference individual steps.
 - Multiple plans coexist; new plan sections append at the bottom. Old plans aren't deleted.
 
+See [docs/agent/notebook-schema.md](docs/agent/notebook-schema.md) for
+verification evidence requirements.
+
 ### Four-stage approval before notebook write
 
 Plans don't land in the notebook on first draft. The agent is instructed to follow this order:
