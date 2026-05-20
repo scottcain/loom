@@ -11,10 +11,16 @@ describe("buildVerificationDisciplineBlock", () => {
     expect(ctx).toContain("Evidence comes before assertion");
     expect(ctx).toContain('do **not** say "done"');
     expect(ctx).toContain("created but not verified");
+    expect(ctx).toContain("Verification is not limited to workflows");
     expect(ctx).toContain("Authored workflow artifact");
     expect(ctx).toContain("upload/import it to Galaxy");
+    expect(ctx).toContain("Galaxy dataset or collection output");
+    expect(ctx).toContain("Local data file");
+    expect(ctx).toContain("Config, script, or report");
     expect(ctx).toContain("Every new plan step should include a concrete `Verification:`");
     expect(ctx).toContain("infer the appropriate check");
+    expect(ctx).toContain("Use a targeted check");
+    expect(ctx).not.toContain("Use the cheapest check");
     expect(ctx).toContain("samtools quickcheck");
     expect(ctx).toContain("VCF/BCF");
     expect(ctx).toContain("required keys/columns");

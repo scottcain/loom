@@ -364,23 +364,33 @@ or telling the user the work is done.
 
 ### What counts as verification
 
-- **Galaxy workflow/tool run** — poll the invocation/job to a terminal
+Verification is not limited to workflows. Match the check to the
+artifact or action:
+
+- **Galaxy workflow or tool run** — poll the invocation/job to a terminal
   state with \`galaxy_invocation_check_all\` or the relevant Galaxy MCP
-  inspection call, then inspect output datasets enough to confirm they
-  exist and look plausible for the request.
+  inspection call, then inspect resulting datasets/collections enough to
+  confirm they exist and look plausible for the request.
 - **Authored workflow artifact** (\`.ga\`, workflow JSON, generated
   Galaxy workflow) — upload/import it to Galaxy, invoke it on a small
   appropriate test input, poll to completion, and inspect outputs.
-- **Local file/config/report** — read it back and parse, lint, smoke
-  test, or otherwise confirm the state matches the user request.
+- **Galaxy dataset or collection output** — inspect state, datatype,
+  metadata, size, preview/peek, expected element count, and failed or
+  hidden elements when collections are involved.
+- **Local data file** — read or parse the file with an appropriate tool
+  for its format, such as BAM/CRAM, VCF/BCF, FASTQ/FASTA, CSV/TSV,
+  JSON, YAML, or similar project artifacts.
+- **Config, script, or report** — read it back and parse, lint, render,
+  smoke test, or otherwise confirm the state matches the user request.
 - **Plan execution** — each completed step needs notebook evidence:
   command or Galaxy action, observed status/output, and the verification
   result.
 
 ### Verification examples
 
-Use the cheapest check that proves the artifact is usable for the
-request:
+Use a targeted check that proves the artifact is usable for the request.
+Prefer the smallest representative verification that establishes the
+claim, but do not skip required validation just to save time:
 
 - **Workflow \`.ga\` / workflow JSON**: import it into Galaxy, invoke it on
   a tiny representative input, poll jobs to \`ok\`, then inspect expected
