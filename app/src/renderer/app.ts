@@ -13,6 +13,11 @@ declare global {
   }
 }
 
+// macOS uses titleBarStyle: 'hiddenInset', which insets the traffic lights
+// over the top-left of the content. Toggle a body class so we can pad the
+// leftmost masthead away from them and skip the padding on other platforms.
+if (navigator.platform.startsWith("Mac")) document.body.classList.add("platform-darwin");
+
 // ── Components ────────────────────────────────────────────────────────────────
 
 const messagesEl = document.getElementById("messages")!;
@@ -2586,6 +2591,7 @@ async function savePreferences(): Promise<void> {
   const result = await window.orbit.saveConfig(config as Record<string, unknown>);
   if (result.success) {
     closePreferences();
+    void refreshGalaxyStatus();
     if (selectedModel) {
       currentModel = selectedModel;
       renderModelIndicator();
