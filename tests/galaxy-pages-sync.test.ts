@@ -6,6 +6,7 @@ import * as state from "../extensions/loom/state";
 import {
     pushNotebookToGalaxy,
     pullNotebookFromGalaxy,
+    linkGalaxyPage,
 } from "../extensions/loom/galaxy-pages-sync";
 
 vi.mock("../extensions/loom/galaxy-pages-api");
@@ -214,5 +215,77 @@ describe("pullNotebookFromGalaxy", () => {
         expect(written).not.toContain("Some local edits.");
         expect(written).toContain("```loom-galaxy-page");
         expect(written).toContain("last_synced_revision: r2");
+    });
+});
+
+describe("linkGalaxyPage", () => {
+    it("inserts a binding block from a getPage response", async () => {
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue(
+            "# Notebook\n\nNo binding yet.\n",
+        );
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p7",
+            slug: "linked-page",
+            latest_revision_id: "r3",
+            revision_ids: ["r3"],
+            title: "Linked",
+            content: "ignored",
+            content_format: "markdown",
+            history_id: "h7",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-20T00:00:00Z",
+        });
+
+        const result = await linkGalaxyPage("p7");
+
+        expect(pagesApi.getPage).toHaveBeenCalledWith("p7");
+        expect(result).toEqual({ pageId: "p7", latestRevisionId: "r3" });
+        const written = vi.mocked(notebookWriter.writeNotebook).mock.calls.at(
+            -1,
+        )![1];
+        expect(written).toContain("page_id: p7");
+        expect(written).toContain("page_slug: linked-page");
+        expect(written).toContain("history_id: h7");
+        expect(written).toContain("# Notebook");
+    });
+
+    it("requires explicit history_id when the page response doesn't carry one", async () => {
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue("# Notebook\n");
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p8",
+            slug: "no-hist",
+            latest_revision_id: "r4",
+            revision_ids: ["r4"],
+            title: "NoHist",
+            content: "",
+            content_format: "markdown",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-20T00:00:00Z",
+        });
+
+        await expect(linkGalaxyPage("p8")).rejects.toThrow(/history_id/);
+    });
+
+    it("uses provided history_id when caller supplies one", async () => {
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue("# Notebook\n");
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p9",
+            slug: "x",
+            latest_revision_id: "r5",
+            revision_ids: ["r5"],
+            title: "X",
+            content: "",
+            content_format: "markdown",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-20T00:00:00Z",
+        });
+
+        const result = await linkGalaxyPage("p9", { historyId: "h9-explicit" });
+
+        expect(result.pageId).toBe("p9");
+        const written = vi.mocked(notebookWriter.writeNotebook).mock.calls.at(
+            -1,
+        )![1];
+        expect(written).toContain("history_id: h9-explicit");
     });
 });

@@ -49,6 +49,49 @@ function requireGalaxyConfig(): GalaxyConfig {
     return c;
 }
 
+export interface LinkOptions {
+    historyId?: string;
+}
+
+export interface LinkResult {
+    pageId: string;
+    latestRevisionId: string;
+}
+
+export async function linkGalaxyPage(
+    pageIdOrSlug: string,
+    opts: LinkOptions = {},
+): Promise<LinkResult> {
+    const nbPath = requireNotebookPath();
+    const config = requireGalaxyConfig();
+
+    return withNotebookLock(nbPath, async () => {
+        const page = await getPage(pageIdOrSlug);
+        const responseHistoryId = (page as Record<string, unknown>).history_id;
+        const historyId =
+            opts.historyId ??
+            (typeof responseHistoryId === "string" ? responseHistoryId : null);
+        if (!historyId) {
+            throw new Error(
+                "linkGalaxyPage: history_id is required (Galaxy did not return one on the page " +
+                    "response and no override was supplied). Pass history_id explicitly, or use " +
+                    "notebook_push_to_galaxy to create a new page bound to a known history.",
+            );
+        }
+        const content = await readNotebook(nbPath);
+        const binding: GalaxyPageBindingYaml = {
+            pageId: page.id,
+            pageSlug: page.slug ?? null,
+            galaxyServerUrl: config.url,
+            historyId,
+            lastSyncedRevision: page.latest_revision_id,
+            boundAt: new Date().toISOString(),
+        };
+        await writeNotebook(nbPath, upsertGalaxyPageBlock(content, binding));
+        return { pageId: page.id, latestRevisionId: page.latest_revision_id };
+    });
+}
+
 export interface PullResult {
     pageId: string;
     latestRevisionId: string;
