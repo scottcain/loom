@@ -40,10 +40,38 @@ function parseSemver(v: string): SemverParts | null {
   };
 }
 
-// Lex-compares prerelease tags. Semver spec is stricter (dot-separated
-// identifiers, numeric vs alpha rules), but for our alpha.N / beta.N / rc.N
-// tag scheme a string compare gives the right ordering and avoids pulling
-// in a semver dependency for one feature.
+// Compares two prerelease tags per semver precedence rules. Numeric segments
+// compare numerically (so alpha.10 > alpha.9, which a plain string compare
+// gets wrong). Avoids pulling in a semver dependency for one feature.
+// Returns negative when a < b, positive when a > b, zero when equal.
+function comparePre(a: string, b: string): number {
+  if (a === b) return 0;
+  // A version without a prerelease tag has higher precedence than the same
+  // version with one (1.0.0 > 1.0.0-alpha).
+  if (!a) return 1;
+  if (!b) return -1;
+  const ap = a.split(".");
+  const bp = b.split(".");
+  const len = Math.min(ap.length, bp.length);
+  for (let i = 0; i < len; i++) {
+    const x = ap[i];
+    const y = bp[i];
+    const xn = /^\d+$/.test(x);
+    const yn = /^\d+$/.test(y);
+    if (xn && yn) {
+      const dx = parseInt(x, 10);
+      const dy = parseInt(y, 10);
+      if (dx !== dy) return dx < dy ? -1 : 1;
+    } else if (xn !== yn) {
+      // Numeric identifiers have lower precedence than alphanumeric ones.
+      return xn ? -1 : 1;
+    } else if (x !== y) {
+      return x < y ? -1 : 1;
+    }
+  }
+  return ap.length === bp.length ? 0 : ap.length < bp.length ? -1 : 1;
+}
+
 function isNewer(current: string, candidate: string): boolean {
   const a = parseSemver(current);
   const b = parseSemver(candidate);
@@ -51,10 +79,7 @@ function isNewer(current: string, candidate: string): boolean {
   if (b.major !== a.major) return b.major > a.major;
   if (b.minor !== a.minor) return b.minor > a.minor;
   if (b.patch !== a.patch) return b.patch > a.patch;
-  if (a.pre && !b.pre) return true;
-  if (!a.pre && b.pre) return false;
-  if (a.pre && b.pre) return b.pre > a.pre;
-  return false;
+  return comparePre(a.pre, b.pre) < 0;
 }
 
 function readCache(): CacheShape | null {
