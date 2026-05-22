@@ -67,10 +67,7 @@ export async function linkGalaxyPage(
 
     return withNotebookLock(nbPath, async () => {
         const page = await getPage(pageIdOrSlug);
-        const responseHistoryId = (page as Record<string, unknown>).history_id;
-        const historyId =
-            opts.historyId ??
-            (typeof responseHistoryId === "string" ? responseHistoryId : null);
+        const historyId = opts.historyId ?? page.history_id ?? null;
         if (!historyId) {
             throw new Error(
                 "linkGalaxyPage: history_id is required (Galaxy did not return one on the page " +
