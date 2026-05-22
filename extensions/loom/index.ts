@@ -9,6 +9,7 @@
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { registerPlanTools } from "./tools";
+import { registerNotebookSyncTools } from "./tools-sync";
 import { setupContextInjection, formatConnectionStatus } from "./context";
 import { setupUIBridge } from "./ui-bridge";
 import { registerSessionLifecycle } from "./session-lifecycle";
@@ -38,6 +39,7 @@ export default function galaxyAnalystExtension(pi: ExtensionAPI): void {
   registerActivityHooks(pi);
 
   registerPlanTools(pi);
+  registerNotebookSyncTools(pi);
   registerExecutionCommands(pi);
   registerConfusablesHint(pi);
   if (isTeamDispatchEnabled()) {
