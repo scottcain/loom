@@ -88,9 +88,16 @@ Sync semantics:
 - `notebook_pull_from_galaxy` -- unconditional remote-wins. Replaces local
   notebook content with the Galaxy page body. Bumps `last_synced_revision`
   to the latest revision id.
+- `notebook_resume_from_galaxy` -- one-shot link + pull for picking up a
+  page that was started or last edited in the Galaxy UI. On a fresh
+  (unbound) notebook it writes the binding block and replaces the body
+  with the remote page content in a single locked op. If the notebook is
+  already bound to the same page it just refreshes (preserving
+  `bound_at`). If it's bound to a different page on the same server the
+  tool refuses -- use `notebook_link_galaxy_page` to switch explicitly.
 - Server URL mismatch fails closed: if `galaxy_server_url` does not match
-  the currently connected Galaxy, both push and pull error out before any
-  network call. Use `/connect` to switch.
+  the currently connected Galaxy, push / pull / resume all error out
+  before any network call. Use `/connect` to switch.
 
 ## Notebook persistence and git
 
