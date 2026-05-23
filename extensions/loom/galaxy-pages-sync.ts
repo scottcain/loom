@@ -89,6 +89,80 @@ export async function linkGalaxyPage(
     });
 }
 
+export interface ResumeOptions {
+    historyId?: string;
+}
+
+export interface ResumeResult {
+    pageId: string;
+    latestRevisionId: string;
+    action: "linked" | "refreshed";
+}
+
+/**
+ * One-shot "resume from Galaxy": link the local notebook to a Galaxy page
+ * and replace its body with the remote content in a single locked op.
+ *
+ * Refuses to clobber an existing binding to a different page on the same
+ * server -- that's `link` + `pull` territory and should be explicit. Same
+ * fail-closed server URL check as pull. Idempotent when re-resuming the
+ * same page (action="refreshed", boundAt preserved).
+ */
+export async function resumeGalaxyPage(
+    pageIdOrSlug: string,
+    opts: ResumeOptions = {},
+): Promise<ResumeResult> {
+    const nbPath = requireNotebookPath();
+    const config = requireGalaxyConfig();
+
+    return withNotebookLock(nbPath, async () => {
+        const localBefore = await readNotebook(nbPath);
+        const existing = findGalaxyPageBlocks(localBefore)[0];
+        const page = await getPage(pageIdOrSlug);
+
+        if (existing) {
+            if (existing.galaxyServerUrl !== config.url) {
+                throw new Error(
+                    `Notebook is bound to a Galaxy page on ${existing.galaxyServerUrl}, ` +
+                        `but you are connected to ${config.url}. Use /connect to switch first.`,
+                );
+            }
+            if (existing.pageId !== page.id) {
+                throw new Error(
+                    `Notebook is already bound to page ${existing.pageId}; refusing to ` +
+                        `clobber with content from ${page.id}. Use notebook_link_galaxy_page ` +
+                        `to re-link explicitly, then notebook_pull_from_galaxy.`,
+                );
+            }
+        }
+
+        const historyId =
+            opts.historyId ?? page.history_id ?? existing?.historyId ?? null;
+        if (!historyId) {
+            throw new Error(
+                "resumeGalaxyPage: history_id is required (Galaxy did not return one on the " +
+                    "page response and no override was supplied). Pass history_id explicitly.",
+            );
+        }
+
+        const remoteBody = page.content ?? "";
+        const binding: GalaxyPageBindingYaml = {
+            pageId: page.id,
+            pageSlug: page.slug ?? null,
+            galaxyServerUrl: config.url,
+            historyId,
+            lastSyncedRevision: page.latest_revision_id,
+            boundAt: existing?.boundAt ?? new Date().toISOString(),
+        };
+        await writeNotebook(nbPath, upsertGalaxyPageBlock(remoteBody, binding));
+        return {
+            pageId: page.id,
+            latestRevisionId: page.latest_revision_id,
+            action: existing ? "refreshed" : "linked",
+        };
+    });
+}
+
 export interface PullResult {
     pageId: string;
     latestRevisionId: string;

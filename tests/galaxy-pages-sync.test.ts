@@ -7,6 +7,7 @@ import {
     pushNotebookToGalaxy,
     pullNotebookFromGalaxy,
     linkGalaxyPage,
+    resumeGalaxyPage,
 } from "../extensions/loom/galaxy-pages-sync";
 
 vi.mock("../extensions/loom/galaxy-pages-api");
@@ -287,5 +288,163 @@ describe("linkGalaxyPage", () => {
             -1,
         )![1];
         expect(written).toContain("history_id: h9-explicit");
+    });
+});
+
+describe("resumeGalaxyPage", () => {
+    it("links and pulls when notebook has no binding", async () => {
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue(
+            "# Template\n\nNothing here yet.\n",
+        );
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p10",
+            slug: "resumed",
+            latest_revision_id: "r10",
+            revision_ids: ["r10"],
+            title: "Resumed",
+            content: "# Remote analysis\n\nReal work happened here.\n",
+            content_format: "markdown",
+            history_id: "h10",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-20T00:00:00Z",
+        });
+
+        const result = await resumeGalaxyPage("p10");
+
+        expect(pagesApi.getPage).toHaveBeenCalledWith("p10");
+        expect(result).toEqual({
+            pageId: "p10",
+            latestRevisionId: "r10",
+            action: "linked",
+        });
+        const written = vi.mocked(notebookWriter.writeNotebook).mock.calls.at(
+            -1,
+        )![1];
+        expect(written).toContain("# Remote analysis");
+        expect(written).toContain("Real work happened here.");
+        expect(written).not.toContain("Template");
+        expect(written).toContain("page_id: p10");
+        expect(written).toContain("history_id: h10");
+        expect(written).toContain("last_synced_revision: r10");
+    });
+
+    it("refreshes when already bound to the same page (preserves bound_at)", async () => {
+        const bound = [
+            "Local stale content.",
+            "",
+            "```loom-galaxy-page",
+            "page_id: p11",
+            "page_slug: same",
+            'galaxy_server_url: "https://galaxy.example"',
+            "history_id: h11",
+            "last_synced_revision: r11",
+            "bound_at: 2026-05-20T10:00:00Z",
+            "```",
+            "",
+        ].join("\n");
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue(bound);
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p11",
+            slug: "same",
+            latest_revision_id: "r12",
+            revision_ids: ["r11", "r12"],
+            title: "Same",
+            content: "# Fresh from server\n",
+            content_format: "markdown",
+            history_id: "h11",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-21T00:00:00Z",
+        });
+
+        const result = await resumeGalaxyPage("p11");
+
+        expect(result.action).toBe("refreshed");
+        const written = vi.mocked(notebookWriter.writeNotebook).mock.calls.at(
+            -1,
+        )![1];
+        expect(written).toContain("# Fresh from server");
+        expect(written).not.toContain("Local stale content.");
+        expect(written).toContain("last_synced_revision: r12");
+        expect(written).toContain("bound_at: 2026-05-20T10:00:00Z");
+    });
+
+    it("refuses to clobber when bound to a different page on the same server", async () => {
+        const bound = [
+            "```loom-galaxy-page",
+            "page_id: p-mine",
+            "page_slug: mine",
+            'galaxy_server_url: "https://galaxy.example"',
+            "history_id: h1",
+            "last_synced_revision: r1",
+            "bound_at: 2026-05-20T10:00:00Z",
+            "```",
+            "",
+        ].join("\n");
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue(bound);
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p-other",
+            slug: "other",
+            latest_revision_id: "r2",
+            revision_ids: ["r2"],
+            title: "Other",
+            content: "should not land",
+            content_format: "markdown",
+            history_id: "h1",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-20T00:00:00Z",
+        });
+
+        await expect(resumeGalaxyPage("p-other")).rejects.toThrow(
+            /already bound to page p-mine/,
+        );
+        expect(notebookWriter.writeNotebook).not.toHaveBeenCalled();
+    });
+
+    it("throws on server-URL mismatch before writing", async () => {
+        const bound = [
+            "```loom-galaxy-page",
+            "page_id: p1",
+            "page_slug: a",
+            'galaxy_server_url: "https://other.example"',
+            "history_id: h1",
+            "last_synced_revision: r1",
+            "bound_at: 2026-05-20T10:00:00Z",
+            "```",
+            "",
+        ].join("\n");
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue(bound);
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p1",
+            slug: "a",
+            latest_revision_id: "r1",
+            revision_ids: ["r1"],
+            title: "A",
+            content: "",
+            content_format: "markdown",
+            history_id: "h1",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-20T00:00:00Z",
+        });
+        await expect(resumeGalaxyPage("p1")).rejects.toThrow(
+            /bound to.*other\.example.*connected to.*galaxy\.example/,
+        );
+        expect(notebookWriter.writeNotebook).not.toHaveBeenCalled();
+    });
+
+    it("requires history_id when the page response doesn't carry one", async () => {
+        vi.mocked(notebookWriter.readNotebook).mockResolvedValue("# Template\n");
+        vi.mocked(pagesApi.getPage).mockResolvedValue({
+            id: "p20",
+            slug: "no-hist",
+            latest_revision_id: "r20",
+            revision_ids: ["r20"],
+            title: "NoHist",
+            content: "body",
+            content_format: "markdown",
+            create_time: "2026-05-20T00:00:00Z",
+            update_time: "2026-05-20T00:00:00Z",
+        });
+
+        await expect(resumeGalaxyPage("p20")).rejects.toThrow(/history_id/);
     });
 });
