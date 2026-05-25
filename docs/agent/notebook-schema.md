@@ -32,7 +32,7 @@ Question: how do mtDNA variants distribute across tissues in this dataset?
 
 - [ ] 1. **QC FASTQ** {#plan-a-step-1} — fastp adapter trim + per-base QC
   - Routing: local
-  - Verification: confirm FastQC output exists and includes per-base quality metrics
+  - Verification: confirm fastp HTML/JSON report exists and includes per-base quality metrics
 - [ ] 2. **Reference index** {#plan-a-step-2} — bwa index of chrM
   - Routing: local
   - Verification: confirm BWA index sidecar files and `.fai` exist
