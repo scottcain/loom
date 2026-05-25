@@ -43,7 +43,7 @@ describe("parseMostRecentPlan", () => {
 ### Steps
 
 - [ ] 1. **QC FASTQ** {#plan-a-step-1} -- fastp adapter trim + per-base QC
-  - Verification: confirm FastQC output exists and includes per-base quality summary
+  - Verification: confirm fastp HTML/JSON report exists and includes per-base quality summary
 - [ ] 2. **Reference index** {#plan-a-step-2} -- bwa index of chrM
 `);
     expect(plan).not.toBeNull();
