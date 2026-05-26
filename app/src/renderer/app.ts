@@ -1447,23 +1447,18 @@ async function switchModelByAlias(originalText: string, alias: string): Promise<
     return;
   }
 
-  // Save updated config
-  const current = (await window.orbit.getConfig()) as Record<string, unknown>;
-  const llm = ((current.llm as Record<string, unknown> | undefined) || {}) as Record<
-    string,
-    unknown
-  >;
-
+  // Send a partial update -- the reconciler in main preserves every other
+  // provider's encrypted key + model and only overlays what we send here.
+  // Writing the old flat shape (llm.provider/llm.model) would be picked up
+  // by the reconciler as an empty providers map and wipe every saved key.
   const switchingProvider = chosen.provider !== currentProvider;
-  if (switchingProvider) {
-    llm.provider = chosen.provider;
-    // Don't clobber the existing API key — if the user has none for the new provider,
-    // the agent restart will fail with a clear error and they can set it in Preferences.
-  }
-  llm.model = chosen.model.id;
-  current.llm = llm;
-
-  const result = await window.orbit.saveConfig(current);
+  const update = {
+    llm: {
+      active: chosen.provider,
+      providers: { [chosen.provider]: { model: chosen.model.id } },
+    },
+  };
+  const result = await window.orbit.saveConfig(update);
   if (!result.success) {
     chat.addErrorMessage(`Failed to save config: ${result.error}`);
     return;

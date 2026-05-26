@@ -72,7 +72,13 @@ function reconcileIncomingConfig(incoming: Record<string, unknown>): LoomConfig 
   type IncomingLlm = { active?: string; providers?: Record<string, IncomingProvider> };
   const incomingLlm = (incoming as { llm?: IncomingLlm }).llm;
   if (incomingLlm) {
-    const mergedProviders: NonNullable<LoomConfig["llm"]>["providers"] = {};
+    // Seed from disk so a partial payload (e.g. /model switching just the
+    // active provider's model) preserves every other provider's encrypted
+    // blob. Iterating only what the renderer sent would silently wipe
+    // anything it didn't touch.
+    const mergedProviders: NonNullable<LoomConfig["llm"]>["providers"] = {
+      ...(current.llm?.providers ?? {}),
+    };
     for (const [name, p] of Object.entries(incomingLlm.providers ?? {})) {
       const existing = current.llm?.providers?.[name];
       const rawKey = p.apiKey;

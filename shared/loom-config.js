@@ -61,14 +61,28 @@ export function loadConfig() {
   // Migrate flat llm shape (pre-multi-provider) → {active, providers} map.
   // Old: { llm: { provider, apiKey?, apiKeyEncrypted?, model? } }
   // New: { llm: { active, providers: { [provider]: { apiKey?, apiKeyEncrypted?, model? } } } }
-  if (raw.llm && !raw.llm.providers) {
-    const old = raw.llm;
-    const provider = old.provider || "anthropic";
-    const entry = {};
-    if (old.apiKey) entry.apiKey = old.apiKey;
-    if (old.apiKeyEncrypted) entry.apiKeyEncrypted = old.apiKeyEncrypted;
-    if (old.model) entry.model = old.model;
-    raw.llm = { active: provider, providers: { [provider]: entry } };
+  //
+  // Additive on purpose: if a config has BOTH old top-level fields and a
+  // partial providers map (which can happen if any caller wrote a half-
+  // migrated shape), fold the orphan fields into the right provider entry
+  // instead of silently leaving them as unreachable plaintext on disk.
+  if (raw.llm) {
+    const llm = raw.llm;
+    const orphanProvider = llm.provider || llm.active || "anthropic";
+    const providers = { ...(llm.providers || {}) };
+    const existing = providers[orphanProvider] || {};
+    const merged = { ...existing };
+    if (llm.apiKey && !merged.apiKey && !merged.apiKeyEncrypted) {
+      merged.apiKey = llm.apiKey;
+    }
+    if (llm.apiKeyEncrypted && !merged.apiKey && !merged.apiKeyEncrypted) {
+      merged.apiKeyEncrypted = llm.apiKeyEncrypted;
+    }
+    if (llm.model && !merged.model) merged.model = llm.model;
+    if (merged.apiKey || merged.apiKeyEncrypted || merged.model) {
+      providers[orphanProvider] = merged;
+    }
+    raw.llm = { active: llm.active || orphanProvider, providers };
   }
 
   // Lazy-seed default skills repo if the user hasn't configured any. This
