@@ -382,8 +382,9 @@ If a tool call fails because a credential is missing or wrong:
   for headless setups. Galaxy MCP is registered automatically when the
   key is present; no chat paste needed.
 - **LLM providers** — same path: Orbit's Preferences → API Key, or
-  \`~/.loom/config.json\`'s \`llm.apiKey\` field. The renderer encrypts
-  via Electron \`safeStorage\` if available.
+  \`~/.loom/config.json\`'s \`llm.providers\` map (one entry per provider,
+  pointed to by \`llm.active\`). The renderer encrypts via Electron
+  \`safeStorage\` if available.
 - **Other MCP credentials** — point at the relevant config file or
   environment variable; never invite a paste.
 
