@@ -26,14 +26,17 @@ x64 runner, then attaches both DMGs (and matching `.zip` archives) to a
 
 ## What gets built
 
-| Runner       | Arch  | Artifacts                                                       |
-| ------------ | ----- | --------------------------------------------------------------- |
-| macos-latest | arm64 | `Orbit-<version>-arm64.dmg`, `Orbit-darwin-arm64-<version>.zip` |
-| macos-13     | x64   | `Orbit-<version>-x64.dmg`, `Orbit-darwin-x64-<version>.zip`     |
+| Runner        | Arch  | Artifacts                                                                                  |
+| ------------- | ----- | ------------------------------------------------------------------------------------------ |
+| macos-latest  | arm64 | `Orbit-<version>-arm64.dmg`, `Orbit-darwin-arm64-<version>.zip`                            |
+| macos-13      | x64   | `Orbit-<version>-x64.dmg`, `Orbit-darwin-x64-<version>.zip`                                |
+| ubuntu-latest | x64   | `orbit_<version>_amd64.deb`, `orbit-<version>.x86_64.rpm`, `Orbit-linux-x64-<version>.zip` |
 
-The arm64 build runs on Apple Silicon GitHub runners; the x64 build runs on
-the last generation of Intel Mac runners (`macos-13`). Both are native — no
-cross-compilation, no universal binary.
+The macOS builds run on native GitHub runners — no cross-compilation, no universal binary.
+The Linux x64 build runs on `ubuntu-latest`; it produces a `.deb` (Debian/Ubuntu),
+`.rpm` (Fedora/RHEL/openSUSE), and a `.zip` tarball. The `.deb` also works inside
+**WSL2 with WSLg** on Windows 11 — the recommended path for Windows users until a
+native Windows build is added.
 
 > **Heads-up:** `macos-13` is the only remaining x64-native runner in GitHub's
 > fleet and is on the deprecation track. When it sunsets, the x64 row above

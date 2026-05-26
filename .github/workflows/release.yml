@@ -35,9 +35,18 @@ jobs:
           - os: macos-13
             arch: x64
             platform: darwin
+          # Linux x64 — produces .deb, .rpm, and .zip. Works natively on
+          # Linux and inside WSL2 (with WSLg) on Windows 11.
+          - os: ubuntu-latest
+            arch: x64
+            platform: linux
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Linux packaging deps
+        if: matrix.platform == 'linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y fakeroot rpm
 
       - uses: actions/setup-node@v4
         with:
@@ -65,6 +74,8 @@ jobs:
           path: |
             app/out/make/**/*.dmg
             app/out/make/**/*.zip
+            app/out/make/**/*.deb
+            app/out/make/**/*.rpm
           if-no-files-found: error
 
   publish:
@@ -87,4 +98,6 @@ jobs:
           files: |
             artifacts/**/*.dmg
             artifacts/**/*.zip
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
           fail_on_unmatched_files: true

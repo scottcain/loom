@@ -4,9 +4,9 @@ Orbit is in alpha. Installers ship from the
 [Releases page](https://github.com/galaxyproject/loom/releases) — pick the
 latest tag and download the artifact for your machine.
 
-Linux and Windows installers will be added in subsequent releases; for now
-the install path below is macOS-only. Linux users can still run Orbit from
-source (`cd app && npm start` from a checkout of this repo).
+Linux installers (`.deb` / `.rpm`) are included starting with the first
+alpha release. Windows is not yet supported natively — see the
+[Windows (via WSL2)](#windows-via-wsl2) section below.
 
 ## macOS
 
@@ -70,6 +70,81 @@ lives under:
   Keychain), session history.
 
 Remove those directories to fully reset the app.
+
+## Linux
+
+Two package formats are published per release:
+
+| File                            | When to pick it                                          |
+| ------------------------------- | -------------------------------------------------------- |
+| `orbit_<version>_amd64.deb`     | Debian, Ubuntu, Linux Mint, Pop!\_OS, and derivatives    |
+| `orbit-<version>.x86_64.rpm`    | Fedora, RHEL, CentOS, openSUSE                           |
+| `Orbit-linux-x64-<version>.zip` | Any distro — extract and run the `orbit` binary directly |
+
+### Install (.deb — Debian/Ubuntu)
+
+```bash
+sudo dpkg -i orbit_<version>_amd64.deb
+sudo apt-get install -f   # resolves any missing dependencies
+orbit                     # launch from terminal, or find it in your app launcher
+```
+
+### Install (.rpm — Fedora/RHEL)
+
+```bash
+sudo rpm -i orbit-<version>.x86_64.rpm
+orbit
+```
+
+### Install (.zip — any distro)
+
+```bash
+unzip Orbit-linux-x64-<version>.zip -d ~/orbit
+~/orbit/orbit
+```
+
+### Uninstall
+
+```bash
+sudo dpkg -r orbit          # Debian/Ubuntu
+sudo rpm -e orbit           # Fedora/RHEL
+```
+
+Per-user state lives under `~/.orbit/` and `~/.loom/` — remove those to fully reset.
+
+---
+
+## Windows (via WSL2)
+
+Native Windows builds are not yet available. Windows 11 users with
+**WSL2 + WSLg** can run the Linux `.deb` build directly — WSLg provides
+native GUI support with no X server setup required.
+
+### Prerequisites
+
+1. **WSL2** — run `wsl --install` in an elevated PowerShell if not already set up.
+2. **WSLg** — bundled with WSL2 on Windows 11 (build 22000+). Run `wsl --update` to ensure it's current.
+3. **Ubuntu** (or another Debian-based distro) inside WSL2.
+
+### Install inside WSL2
+
+Open your WSL2 terminal and run:
+
+```bash
+# Download the .deb from the Releases page, then:
+sudo dpkg -i orbit_<version>_amd64.deb
+sudo apt-get install -f
+orbit
+```
+
+The Orbit window opens on your Windows desktop via WSLg — no further configuration needed.
+
+### Notes
+
+- File paths inside WSL2 are at `/mnt/c/...` from within the terminal. Point Orbit's working directory at a path inside WSL2 (`~/analyses/`) for best performance — cross-filesystem I/O over `/mnt/c` is slower.
+- Keychain-based API key encryption is not available in WSL2 (no `safeStorage`). API keys are stored in plaintext in `~/.loom/config.json` inside the WSL2 filesystem. Use filesystem permissions (`chmod 600`) to restrict access.
+
+---
 
 ## Reporting installer issues
 
