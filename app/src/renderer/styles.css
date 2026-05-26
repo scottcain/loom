@@ -2028,6 +2028,9 @@ body.platform-darwin #files-title {
 .api-key-status.checking {
   color: var(--text-dim);
 }
+.api-key-status.stored {
+  color: var(--success);
+}
 .api-key-status.valid {
   color: #2ea043;
 }

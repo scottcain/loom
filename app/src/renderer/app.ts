@@ -2350,6 +2350,13 @@ prefsProvider.addEventListener("change", () => {
   loadProviderFields(prefsActiveProvider);
 });
 wireApiKeyValidation(prefsProvider, prefsApiKey, prefsApiKeyStatus);
+// Clear the "✓ Key stored" indicator as soon as the user starts typing.
+prefsApiKey.addEventListener("input", () => {
+  if (prefsApiKeyStatus.classList.contains("stored")) {
+    prefsApiKeyStatus.className = "api-key-status";
+    prefsApiKeyStatus.textContent = "";
+  }
+});
 const prefsGalaxyUrl = document.getElementById("prefs-galaxy-url") as HTMLInputElement;
 const prefsGalaxyKey = document.getElementById("prefs-galaxy-key") as HTMLInputElement;
 const prefsGalaxyError = document.getElementById("prefs-galaxy-error")!;
@@ -2485,9 +2492,15 @@ function loadProviderFields(provider: string): void {
   const state = prefsProviderStates[provider] ?? { hadKey: false, typedKey: "", model: "" };
   populateModels(provider, state.model || undefined);
   prefsApiKey.value = state.typedKey;
-  prefsApiKey.placeholder = state.hadKey ? "•••••••• (unchanged)" : "";
-  prefsApiKeyStatus.className = "api-key-status";
-  prefsApiKeyStatus.textContent = "";
+  prefsApiKey.placeholder = state.hadKey ? "leave blank to keep existing key" : "";
+  if (state.hadKey && !state.typedKey) {
+    prefsApiKeyStatus.className = "api-key-status stored";
+    prefsApiKeyStatus.textContent =
+      "✓ Key stored — leave blank to keep, or enter a new key to replace";
+  } else {
+    prefsApiKeyStatus.className = "api-key-status";
+    prefsApiKeyStatus.textContent = "";
+  }
 }
 
 async function openPreferences(): Promise<void> {
