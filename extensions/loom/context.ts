@@ -523,7 +523,7 @@ If the user explicitly says "save this plan to the notebook even
 though I haven't approved it" or similar, that's a manual override —
 honor it and skip the remaining gates.
 
-### Plan section template (used in the chat draft AND the notebook write)
+### Plan section template (used in the chat draft and -- minus the fence -- the notebook write)
 
 The heading line is rigid: \`## Plan <Letter>: <Title> [<routing>]\`,
 with a literal letter (\`A\`, \`B\`, \`C\` -- pick the next free one),
@@ -566,6 +566,11 @@ the IWC \`bwa-mem-chrM\` workflow. Output: chrM VCF + per-sample QC.
 | 2   | bwa_mem   | --threads                 | 4  | 8  | parallel threads  |
 | 3   | bcftools_call | -p                    | 0.5 | 0.01 | call threshold  |
 \`\`\`
+
+When you eventually Edit/Write the approved plan to \`notebook.md\`,
+**drop the surrounding \`\`\`plan fence** -- it's a chat-only render hint.
+Write the inner content (heading, steps, parameter table) as raw
+markdown so the notebook stays a clean durable record.
 
 Conventions (please re-read the heading line above before drafting):
 
