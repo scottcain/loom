@@ -201,13 +201,13 @@ export function registerIpcHandlers(agent: AgentManager): void {
   ipcMain.handle("chat:replay", async (e) => {
     const window = BrowserWindow.fromWebContents(e.sender);
     if (!window || window.isDestroyed()) return { ok: false, error: "no window" };
-    const pinned = agent.getPinnedSessionFile();
-    if (!pinned) {
+    const file = agent.getReplaySessionFile();
+    if (!file) {
       window.webContents.send("agent:session-history", []);
       return { ok: true, segments: 0 };
     }
     try {
-      const history = loadSessionHistory(pinned);
+      const history = loadSessionHistory(file);
       window.webContents.send("agent:session-history", history);
       return { ok: true, segments: history.length };
     } catch (err) {

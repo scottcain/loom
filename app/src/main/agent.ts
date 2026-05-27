@@ -175,7 +175,12 @@ export class AgentManager {
   private nextStartIsFresh = false; // → tells extension to skip notebook auto-load on next start
   // Pinned on start() to the .jsonl pi will replay on --continue, or null
   // on fresh starts so /chat refuses to surface stale per-cwd history.
+  // For fresh starts we lazily adopt a file the brain writes after spawn
+  // (mtime > spawnStartedAtMs) the first time /chat asks for it; the
+  // timestamp is what tells us a session file is *this* spawn's, not a
+  // leftover from a previous run in the same cwd.
   private pinnedSessionFile: string | null = null;
+  private spawnStartedAtMs = 0;
   private mcpBootstrapRestartDone = false; // → guard: only auto-restart once per app lifetime
   private silentRestarting = false; // → suppresses status flicker during MCP bootstrap restart
 
@@ -236,9 +241,26 @@ export class AgentManager {
     return this.process?.pid ?? null;
   }
 
-  /** Session file the current spawn is replaying from, or null on fresh. */
-  getPinnedSessionFile(): string | null {
-    return this.pinnedSessionFile;
+  /**
+   * The session file /chat should replay. Returns the pinned file when set
+   * (--continue path), otherwise lazily adopts a newest-by-mtime file the
+   * brain has written *after* spawn (fresh-start path, once the new session
+   * has real content). Returns null if neither applies -- /chat then sends
+   * an empty history rather than surfacing a stale prior-run session.
+   */
+  getReplaySessionFile(): string | null {
+    if (this.pinnedSessionFile) return this.pinnedSessionFile;
+    const newest = newestSessionFile(this.cwd);
+    if (!newest) return null;
+    try {
+      if (fs.statSync(newest).mtimeMs > this.spawnStartedAtMs) {
+        this.pinnedSessionFile = newest;
+        return newest;
+      }
+    } catch {
+      // statSync race -- file disappeared between readdir and stat; treat as "no replay yet"
+    }
+    return null;
   }
 
   /**
@@ -279,9 +301,9 @@ export class AgentManager {
     this.hasStartedBefore = true;
     this.nextStartSkipContinue = false;
 
-    // Same picker the brain itself will use for --continue, so what main
-    // pins matches what the brain resumes from. Cleared in stop().
+    // Pin matches pi's --continue choice in normal use. Cleared in stop().
     this.pinnedSessionFile = wantsContinue ? newestSessionFile(this.cwd) : null;
+    this.spawnStartedAtMs = Date.now();
 
     const fresh = this.nextStartIsFresh;
     this.nextStartIsFresh = false;
