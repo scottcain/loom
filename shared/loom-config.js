@@ -72,11 +72,14 @@ export function loadConfig() {
     const providers = { ...(llm.providers || {}) };
     const existing = providers[orphanProvider] || {};
     const merged = { ...existing };
-    if (llm.apiKey && !merged.apiKey && !merged.apiKeyEncrypted) {
-      merged.apiKey = llm.apiKey;
-    }
+    // Encrypted wins if both legacy fields are present -- the plaintext
+    // form is the less-safe one, and a half-migrated config that ended up
+    // with both shouldn't drop the encrypted blob.
     if (llm.apiKeyEncrypted && !merged.apiKey && !merged.apiKeyEncrypted) {
       merged.apiKeyEncrypted = llm.apiKeyEncrypted;
+    }
+    if (llm.apiKey && !merged.apiKey && !merged.apiKeyEncrypted) {
+      merged.apiKey = llm.apiKey;
     }
     if (llm.model && !merged.model) merged.model = llm.model;
     if (merged.apiKey || merged.apiKeyEncrypted || merged.model) {
