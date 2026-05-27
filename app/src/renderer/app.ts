@@ -967,7 +967,7 @@ async function loadNotebookFromDisk(): Promise<void> {
   }
 }
 
-// On wake-from-sleep, auto-restore blank chat and notebook without user action.
+// On wake-from-sleep, auto-restore blank chat, notebook, and streaming UI state.
 window.orbit.onDisplayResume(() => {
   if (!chat.hasContent()) {
     void window.orbit.replayChat().then((r) => {
@@ -981,6 +981,17 @@ window.orbit.onDisplayResume(() => {
   } else {
     void loadNotebookFromDisk();
   }
+  // Re-sync streaming UI with actual agent state. If the agent is mid-turn
+  // (running a long tool like foldseek), restore the abort button so the
+  // user isn't stuck with a yellow send button and no way to interrupt.
+  void window.orbit.getAgentStatus().then(({ status }) => {
+    if (status === "running" && !streaming) {
+      streaming = true;
+      sendBtn.classList.add("hidden");
+      abortBtn.classList.remove("hidden");
+      setStatusBadge("running", "running...");
+    }
+  });
 });
 
 window.orbit.onSessionHistory((history) => {
