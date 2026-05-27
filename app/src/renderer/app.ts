@@ -786,12 +786,11 @@ function applyCwdChange(dir: string): void {
     `<i>Switched analysis directory to <code>${dir.replace(/</g, "&lt;")}</code>.</i>`,
   );
   hasShownStartupWelcome = false;
-  // Re-root the file tree, close any open viewer, hide the File tab, drop
-  // the notebook cache — none of the prior project's relPath or notebook
-  // apply in the new cwd.
+  // Re-root the file tree, close any open viewer, hide the File tab. The
+  // notebook cache was already nulled by artifacts.clear() inside the
+  // resetUiForFreshContext() call above.
   fileViewer.close();
   artifacts.hideFileTab();
-  artifacts.clearNotebook();
   filesPanel.reset();
   void filesPanel.refresh();
   void refreshGalaxyInvocations(window.orbit);

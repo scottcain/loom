@@ -173,12 +173,13 @@ export class AgentManager {
   private hasStartedBefore = false; // → use --continue on restart to preserve chat history
   private nextStartSkipContinue = false; // → restart in a new cwd without resuming old chat
   private nextStartIsFresh = false; // → tells extension to skip notebook auto-load on next start
-  // Pinned on start() to the .jsonl pi will replay on --continue, or null
-  // on fresh starts. For fresh starts we lazily adopt via the cwd/session.jsonl
-  // symlink that session-lifecycle.ts (re)creates on session_start -- start()
-  // deletes the stale symlink before spawn, so any link present afterwards
-  // must be from this spawn. Avoids racing the old child's post-SIGTERM
-  // session_shutdown writes (which append to the *old* file's mtime).
+  // --continue: pinned eagerly to newestSessionFile(cwd) -- pi's own picker
+  // will resume the same file under normal use.
+  // fresh start: pinned null; start() unlinks any stale cwd/session.jsonl
+  // before spawn, and getReplaySessionFile lazily adopts the new link the
+  // brain creates in session_start. Avoids racing the old child's post-
+  // SIGTERM session_shutdown writes (which only append to the *old* .jsonl,
+  // not the symlink).
   private pinnedSessionFile: string | null = null;
   private mcpBootstrapRestartDone = false; // → guard: only auto-restart once per app lifetime
   private silentRestarting = false; // → suppresses status flicker during MCP bootstrap restart
