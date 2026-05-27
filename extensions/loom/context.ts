@@ -498,8 +498,9 @@ the geographic distribution analysis").
 When the user **does** ask for a plan, follow this order strictly:
 
 1. **Draft in chat (NOT in the notebook yet).** Reply in chat with a
-   fenced markdown block formatted as a plan section (see template
-   below). This is a proposal for review. Do not call Edit/Write to
+   \`\`\`plan fenced block formatted as a plan section (see template
+   below). Orbit renders \`\`\`plan fences as an interactive card with
+   Approve / Edit / Reject buttons. Do not call Edit/Write to
    put it into \`notebook.md\` at this point.
 2. **Wait for explicit plan approval.** The user must signal approval
    with words like "yes", "go", "approve", "looks good", "proceed",
@@ -533,9 +534,10 @@ continuation-indent text into the parent line; sub-bullets render as
 a real nested list.
 
 Worked example -- copy this shape exactly, just substitute domain
-content:
+content. **Use a \`\`\`plan fence** in chat (not \`\`\`markdown) so Orbit
+renders it as an interactive draft card with Approve/Edit/Reject buttons.
 
-\`\`\`markdown
+\`\`\`plan
 ## Plan A: chrM Variant Calling [galaxy]
 
 Identify mitochondrial variants from 4 paired-end WGS samples using
