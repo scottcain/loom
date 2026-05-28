@@ -784,8 +784,10 @@ async function populateDynamicModelData(): Promise<void> {
       }
     }
     if (Object.keys(newModels).length === 0) return; // never replace with empty
-    MODELS_BY_PROVIDER = newModels;
-    PRICING = newPricing;
+    // Merge rather than replace so hardcoded providers not returned by the
+    // IPC (e.g. deepseek before main process restarts) survive.
+    MODELS_BY_PROVIDER = { ...MODELS_BY_PROVIDER, ...newModels };
+    PRICING = { ...PRICING, ...newPricing };
   } catch {
     /* keep hardcoded fallback */
   }
@@ -2520,6 +2522,10 @@ let MODELS_BY_PROVIDER: Record<string, ModelChoice[]> = {
     { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B (fast)" },
   ],
   xai: [{ id: "grok-2-latest", label: "Grok 2" }],
+  deepseek: [
+    { id: "deepseek-v4-pro", label: "DeepSeek V4 Pro" },
+    { id: "deepseek-v4-flash", label: "DeepSeek V4 Flash (fast)" },
+  ],
   ollama: [
     { id: "qwen3-coder:30b", label: "Qwen3-Coder 30B (local, A5000) — free" },
     { id: "qwen3:8b", label: "Qwen3 8B (local, fast) — free" },

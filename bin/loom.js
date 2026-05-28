@@ -101,6 +101,7 @@ const PROVIDER_ENV_MAP = {
   mistral: "MISTRAL_API_KEY",
   groq: "GROQ_API_KEY",
   xai: "XAI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
 };
 
 // Providers that authenticate via OAuth (~/.pi/agent/auth.json) instead of env vars.
@@ -340,6 +341,7 @@ or unset the active provider in ~/.loom/config.json.
     "GROQ_API_KEY",
     "MISTRAL_API_KEY",
     "XAI_API_KEY",
+    "DEEPSEEK_API_KEY",
     "OPENROUTER_API_KEY",
     "CEREBRAS_API_KEY",
     "AI_GATEWAY_API_KEY",

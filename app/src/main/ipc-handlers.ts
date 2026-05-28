@@ -520,6 +520,7 @@ export function registerIpcHandlers(agent: AgentManager): void {
       "groq",
       "mistral",
       "xai",
+      "deepseek",
     ]);
     type Pricing = { input: number; output: number; cacheRead?: number; cacheWrite?: number };
     type Entry = { id: string; label: string; pricing: Pricing };
