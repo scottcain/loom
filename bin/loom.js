@@ -166,6 +166,24 @@ if (activeLlmConfig?.apiKey && !OAUTH_PROVIDERS.has(activeLlmProvider)) {
   }
 }
 
+// Prefer auth.json (OAuth) over a stray provider env key. When the active
+// provider authenticates via OAuth and is signed in, scrub the conflicting
+// *_API_KEY from the env so Pi uses the OAuth token -- otherwise a leftover
+// (possibly dummy) key like OPENAI_API_KEY shadows it and routes the request
+// to the keyed provider with the wrong credential. Mirrors the Galaxy-cred
+// scrubbing below.
+const OAUTH_CONFLICT_ENV = {
+  "openai-codex": ["OPENAI_API_KEY"],
+};
+if (activeLlmProvider && OAUTH_PROVIDERS.has(activeLlmProvider)) {
+  const auth = readAuthJson();
+  if (auth[activeLlmProvider]) {
+    for (const v of OAUTH_CONFLICT_ENV[activeLlmProvider] || []) {
+      if (process.env[v]) delete process.env[v];
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Galaxy credential + MCP registration
 //
