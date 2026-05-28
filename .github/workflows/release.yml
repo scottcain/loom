@@ -31,10 +31,11 @@ jobs:
           - os: macos-latest
             arch: arm64
             platform: darwin
-          # macos-13 runners are the last x64 Intel macs in GitHub's fleet.
-          - os: macos-13
-            arch: x64
-            platform: darwin
+          # Intel macs (macos-13) are intentionally omitted: GitHub's x64 mac
+          # fleet is so starved that the job sat queued for 19h on the alpha.1
+          # cut and never picked up a runner, wedging the whole release behind
+          # it. Apple Silicon is the overwhelming majority of the target
+          # audience; re-add a macos-13 entry here if Intel demand justifies it.
           # Linux x64 — produces .deb, .rpm, and .zip. Works natively on
           # Linux and inside WSL2 (with WSLg) on Windows 11.
           - os: ubuntu-latest
